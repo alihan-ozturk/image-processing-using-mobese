@@ -5,11 +5,10 @@ import datetime
 
 FFMPEG_BIN = "C:/ffmpeg/bin/ffmpeg.exe"
 WEBURL = "https://hls.ibb.gov.tr/"
-path = "imgs/"
+path = "./"
 
 cameraNames = ["BESIKTAS SEHITLER TEPESI",
                "BAR. BUL. YILDIZ",
-               "ALIBEYKOY SILAHTARAGA TUNEL"
                "HARBIYE ALT GECIDI NISANTASI GIRIS",
                "DAVUTPASA",
                "S. YOLU CEVIZLI",
@@ -19,7 +18,6 @@ cameraNames = ["BESIKTAS SEHITLER TEPESI",
 
 cameraPaths = ["tkm4/hls/539.stream/chunklist.m3u8",
                "tkm4/hls/31.stream/chunklist.m3u8",
-               "tkm2/hls/914.stream/chunklist.m3u8",
                "tkm2/hls/1022.stream/chunklist.m3u8",
                "tkm1/hls/171.stream/chunklist.m3u8",
                "tkm1/hls/261.stream/chunklist.m3u8",
@@ -28,7 +26,6 @@ cameraPaths = ["tkm4/hls/539.stream/chunklist.m3u8",
                "tkm4/hls/284.stream/chunklist.m3u8"]
 
 cameraSizes = [(352, 640, 3),
-               (352, 640, 3),
                (352, 640, 3),
                (288, 352, 3),
                (1080, 1920, 3),
@@ -57,8 +54,8 @@ while c:
                 image = np.frombuffer(raw_image, dtype='uint8').reshape(cameraSize)
             except ValueError:
                 print(cameraName, now)
-                # imgName = path + cameraName + now + ".png"  # x
-                # cv2.imwrite(imgName, image)  # x
+                continue
+
             cv2.imshow("test", image)
             key = cv2.waitKey(70)
             if key == 27:
@@ -67,6 +64,9 @@ while c:
                 break
             elif key == ord("q"):
                 break
+            elif key == ord("s"):
+                imgName = path + cameraName + now + ".png"  # x
+                cv2.imwrite(imgName, image)  # x
         # time.sleep(100)  # x
         if c == 0:
             break
