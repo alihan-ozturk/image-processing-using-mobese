@@ -8,11 +8,11 @@ class click:
     ALPHA = 0.5
     KEY = ord("s")
 
-    def __init__(self, img, configName=None, saveConfig=False):
+    def __init__(self, img, configName="config.txt", saveConfig=False):
         self.__img = img.copy()
         self.__backup = img.copy()
-        self.__temp = img.copy()
-        if configName is not None:
+        self.allPts = []
+        try:
             with open(configName, 'r') as f:
                 try:
                     self.allPts = json.load(f)
@@ -22,13 +22,12 @@ class click:
                         masked = cv.bitwise_and(self.__backup, self.__backup, mask=mask)
                     cv.addWeighted(masked, self.ALPHA, self.__img, 1 - self.ALPHA, 0, self.__img)
                 except json.decoder.JSONDecodeError:
-                    self.allPts = []
-            self.__pts = []
-            self.mask = None
-        else:
-            self.__pts = []
-            self.allPts = []
-            self.mask = None
+                    print("file doesnt contain pts")
+        except FileNotFoundError:
+            print("will be create " + configName + " file")
+        self.__temp = self.__img.copy()
+        self.__pts = []
+        self.mask = None
         self.__createMask()
         if saveConfig:
             with open(configName, 'w') as f:
@@ -83,7 +82,7 @@ class click:
 
 
 img = cv.imread("img.png")
-event = click(img, configName="config.txt",saveConfig=True)
+event = click(img,"alihan.txt", saveConfig=True)
 print(event.allPts)
 imgC, imgD = event.applyMask(img)
 cv.imshow("test", imgD)
