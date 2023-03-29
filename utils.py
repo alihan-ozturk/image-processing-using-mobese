@@ -10,6 +10,7 @@ class click:
     def __init__(self, img):
         self.__img = img
         self.__backup = img.copy()
+        self.__temp = img.copy()
         self.__pts = []
         self.allPts = []
 
@@ -20,7 +21,7 @@ class click:
                        1, (255, 0, 0), 2)
             cv.imshow('img', self.__img)
         elif event == cv.EVENT_RBUTTONDOWN and len(self.__pts) > 0:
-            copy = self.__backup.copy()
+            copy = self.__temp.copy()
             del self.__pts[-1]
             for i, (x, y) in enumerate(self.__pts):
                 cv.putText(copy, str(i + 1), (x, y), self.FONT,
@@ -29,6 +30,7 @@ class click:
             cv.imshow('img', self.__img)
 
     def createMask(self):
+
         cv.imshow("img", self.__img)
         cv.setMouseCallback('img', self.__clickEvent)
         __KEY = cv.waitKey(0)
@@ -46,13 +48,8 @@ class click:
         if __KEY == self.KEY:
             self.__img = self.__backup.copy()
             cv.addWeighted(masked, self.ALPHA, self.__img, 1 - self.ALPHA, 0, self.__img)
+            self.__temp = self.__img.copy()
             self.createMask()
         else:
             cv.destroyWindow("img")
             return mask
-
-
-img = cv.imread("imgs/img.png")
-event = click(img)
-mask = event.createMask()
-print(event.allPts)
