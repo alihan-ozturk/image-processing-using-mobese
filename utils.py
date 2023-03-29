@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import json
 
 
 class click:
@@ -7,14 +8,31 @@ class click:
     ALPHA = 0.5
     KEY = ord("s")
 
-    def __init__(self, img):
+    def __init__(self, img, configName=None, saveConfig=False):
         self.__img = img.copy()
         self.__backup = img.copy()
         self.__temp = img.copy()
-        self.__pts = []
-        self.allPts = []
-        self.mask = None
-        self.createMask()
+        if configName is not None:
+            with open(configName, 'r') as f:
+                try:
+                    self.allPts = json.load(f)
+                    mask = np.zeros_like(self.__img[:, :, 0])
+                    for pts in self.allPts:
+                        cv.fillConvexPoly(mask, np.array(pts), 255)
+                        masked = cv.bitwise_and(self.__backup, self.__backup, mask=mask)
+                    cv.addWeighted(masked, self.ALPHA, self.__img, 1 - self.ALPHA, 0, self.__img)
+                except json.decoder.JSONDecodeError:
+                    self.allPts = []
+            self.__pts = []
+            self.mask = None
+        else:
+            self.__pts = []
+            self.allPts = []
+            self.mask = None
+        self.__createMask()
+        if saveConfig:
+            with open(configName, 'w') as f:
+                json.dump(self.allPts, f)
 
     def __clickEvent(self, event, x, y, flags, params):
         if event == cv.EVENT_LBUTTONDOWN:
@@ -31,7 +49,7 @@ class click:
             self.__img = copy
             cv.imshow('img', self.__img)
 
-    def createMask(self):
+    def __createMask(self):
 
         cv.imshow("img", self.__img)
         cv.setMouseCallback('img', self.__clickEvent)
@@ -50,7 +68,7 @@ class click:
             self.__img = self.__backup.copy()
             cv.addWeighted(masked, self.ALPHA, self.__img, 1 - self.ALPHA, 0, self.__img)
             self.__temp = self.__img.copy()
-            self.createMask()
+            self.__createMask()
         else:
             cv.destroyWindow("img")
             del self.__img
@@ -61,11 +79,13 @@ class click:
     def applyMask(self, img):
         masked = cv.bitwise_and(img, img, mask=self.mask)
         cv.addWeighted(masked, self.ALPHA, img, 1 - self.ALPHA, 0, img)
-        return img
+        return masked, img
 
 
 img = cv.imread("img.png")
-event = click(img)
-imgMasked = event.applyMask(img)
-cv.imshow("test", imgMasked)
+event = click(img, configName="config.txt",saveConfig=True)
+print(event.allPts)
+imgC, imgD = event.applyMask(img)
+cv.imshow("test", imgD)
+cv.imshow("test2", imgC)
 cv.waitKey(0)
