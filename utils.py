@@ -8,11 +8,13 @@ class click:
     KEY = ord("s")
 
     def __init__(self, img):
-        self.__img = img
+        self.__img = img.copy()
         self.__backup = img.copy()
         self.__temp = img.copy()
         self.__pts = []
         self.allPts = []
+        self.mask = None
+        self.createMask()
 
     def __clickEvent(self, event, x, y, flags, params):
         if event == cv.EVENT_LBUTTONDOWN:
@@ -39,8 +41,7 @@ class click:
             self.allPts.append(self.__pts)
             self.__pts = []
         if len(self.allPts) == 0:
-            print("no pts")
-            return None
+            raise Exception("no pts")
         mask = np.zeros_like(self.__img[:, :, 0])
         for i in range(len(self.allPts)):
             cv.fillConvexPoly(mask, np.array(self.allPts[i]), 255)
@@ -52,4 +53,19 @@ class click:
             self.createMask()
         else:
             cv.destroyWindow("img")
-            return mask
+            del self.__img
+            del self.__backup
+            del self.__temp
+            self.mask = mask
+
+    def applyMask(self, img):
+        masked = cv.bitwise_and(img, img, mask=self.mask)
+        cv.addWeighted(masked, self.ALPHA, img, 1 - self.ALPHA, 0, img)
+        return img
+
+
+img = cv.imread("img.png")
+event = click(img)
+imgMasked = event.applyMask(img)
+cv.imshow("test", imgMasked)
+cv.waitKey(0)
