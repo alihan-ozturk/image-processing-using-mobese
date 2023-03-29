@@ -1,38 +1,58 @@
 import cv2 as cv
 import numpy as np
 
-font = cv.FONT_HERSHEY_SIMPLEX
 
+class click:
+    FONT = cv.FONT_HERSHEY_SIMPLEX
+    ALPHA = 0.5
+    KEY = ord("s")
 
-def click_event(event, x, y, flags, params):
-    global img, copy, pts
-    if event == cv.EVENT_LBUTTONDOWN:
-        pts.append([x, y])
-        cv.putText(img, str(len(pts)), (x, y), font,
-                   1, (255, 0, 0), 2)
-        cv.imshow('img', img)
-    elif event == cv.EVENT_RBUTTONDOWN and len(pts) > 0:
-        copy = backup.copy()
-        del pts[-1]
-        for i, (x, y) in enumerate(pts):
-            cv.putText(copy, str(i+1), (x, y), font,
+    def __init__(self, img):
+        self.__img = img
+        self.__backup = img.copy()
+        self.__pts = []
+        self.allPts = []
+
+    def __clickEvent(self, event, x, y, flags, params):
+        if event == cv.EVENT_LBUTTONDOWN:
+            self.__pts.append([x, y])
+            cv.putText(self.__img, str(len(self.__pts)), (x, y), self.FONT,
                        1, (255, 0, 0), 2)
-        img = copy
-        cv.imshow('img', img)
+            cv.imshow('img', self.__img)
+        elif event == cv.EVENT_RBUTTONDOWN and len(self.__pts) > 0:
+            copy = self.__backup.copy()
+            del self.__pts[-1]
+            for i, (x, y) in enumerate(self.__pts):
+                cv.putText(copy, str(i + 1), (x, y), self.FONT,
+                           1, (255, 0, 0), 2)
+            self.__img = copy
+            cv.imshow('img', self.__img)
+
+    def createMask(self):
+        cv.imshow("img", self.__img)
+        cv.setMouseCallback('img', self.__clickEvent)
+        __KEY = cv.waitKey(0)
+
+        if len(self.__pts) > 0:
+            self.allPts.append(self.__pts)
+            self.__pts = []
+        if len(self.allPts) == 0:
+            print("no pts")
+            return None
+        mask = np.zeros_like(self.__img[:, :, 0])
+        for i in range(len(self.allPts)):
+            cv.fillConvexPoly(mask, np.array(self.allPts[i]), 255)
+            masked = cv.bitwise_and(self.__backup, self.__backup, mask=mask)
+        if __KEY == self.KEY:
+            self.__img = self.__backup.copy()
+            cv.addWeighted(masked, self.ALPHA, self.__img, 1 - self.ALPHA, 0, self.__img)
+            self.createMask()
+        else:
+            cv.destroyWindow("img")
+            return mask
 
 
-img = cv.imread("BESIKTAS SEHITLER TEPESI2023-03-24 01-53-01.png")
-mask = np.zeros_like(img[:, :, 0])
-backup = img.copy()
-pts = []
-cv.imshow("img", img)
-cv.setMouseCallback('img', click_event)
-cv.waitKey(0)
-cv.fillConvexPoly(mask, np.array(pts), 255)
-print(mask.shape)
-cv.imshow("img", mask)
-cv.waitKey(0)
-frame_gray = cv.bitwise_and(backup, backup, mask=mask)
-cv.imshow("img", frame_gray)
-cv.waitKey(0)
-print(pts)
+img = cv.imread("imgs/img.png")
+event = click(img)
+mask = event.createMask()
+print(event.allPts)
