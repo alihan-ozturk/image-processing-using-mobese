@@ -74,8 +74,3 @@ class click:
             del self.__backup
             del self.__temp
             self.mask = mask
-
-    def applyMask(self, img):
-        masked = cv.bitwise_and(img, img, mask=self.mask)
-        cv.addWeighted(masked, self.ALPHA, img, 1 - self.ALPHA, 0, img)
-        return masked, img
