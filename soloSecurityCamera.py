@@ -74,7 +74,6 @@ while True:
             if len(tr) > trackLen:
                 del tr[0]
             new_tracks.append(tr)
-            # print(x, y)
             cv.circle(vis, (int(x), int(y)), 3, (0, 255, 0), -1)
         tracks = new_tracks
 
