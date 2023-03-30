@@ -26,7 +26,6 @@ raw_image = pipe.stdout.read(size)
 img = np.frombuffer(raw_image, dtype='uint8').reshape(cameraSize)
 event = click(img, "alihan.txt", saveConfig=True)
 while True:
-    # if i % 100 == 0:
     now = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
     raw_image = pipe.stdout.read(size)
     try:
@@ -35,7 +34,7 @@ while True:
         print(cameraName, now)
         continue
     imgC, imgD = event.applyMask(image)
-    cv2.imshow("test", imgC)
+    cv2.imshow("test", imgD)
     key = cv2.waitKey(70)
     if key == 27:
         cv2.destroyAllWindows()
