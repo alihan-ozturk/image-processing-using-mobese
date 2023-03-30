@@ -71,7 +71,7 @@ class click:
             self.__temp = self.__img.copy()
             self.__createMask()
         else:
-            cv.destroyWindow("img")
+            cv.destroyWindow(self.__windowName)
             del self.__img
             del self.__backup
             del self.__temp
