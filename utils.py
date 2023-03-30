@@ -79,12 +79,3 @@ class click:
         masked = cv.bitwise_and(img, img, mask=self.mask)
         cv.addWeighted(masked, self.ALPHA, img, 1 - self.ALPHA, 0, img)
         return masked, img
-
-
-img = cv.imread("img.png")
-event = click(img,"alihan.txt", saveConfig=True)
-print(event.allPts)
-imgC, imgD = event.applyMask(img)
-cv.imshow("test", imgD)
-cv.imshow("test2", imgC)
-cv.waitKey(0)
