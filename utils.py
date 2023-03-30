@@ -8,10 +8,12 @@ class click:
     ALPHA = 0.5
     KEY = ord("s")
 
-    def __init__(self, img, configName="config.txt", saveConfig=False):
+    def __init__(self, img, configName="config.txt", saveConfig=False, windowName="click"):
         self.__img = img.copy()
         self.__backup = img.copy()
+        self.__windowName = windowName
         self.allPts = []
+
         try:
             with open(configName, 'r') as f:
                 try:
@@ -38,7 +40,7 @@ class click:
             self.__pts.append([x, y])
             cv.putText(self.__img, str(len(self.__pts)), (x, y), self.FONT,
                        1, (255, 0, 0), 2)
-            cv.imshow('img', self.__img)
+            cv.imshow(self.__windowName, self.__img)
         elif event == cv.EVENT_RBUTTONDOWN and len(self.__pts) > 0:
             copy = self.__temp.copy()
             del self.__pts[-1]
@@ -46,12 +48,12 @@ class click:
                 cv.putText(copy, str(i + 1), (x, y), self.FONT,
                            1, (255, 0, 0), 2)
             self.__img = copy
-            cv.imshow('img', self.__img)
+            cv.imshow(self.__windowName, self.__img)
 
     def __createMask(self):
 
-        cv.imshow("img", self.__img)
-        cv.setMouseCallback('img', self.__clickEvent)
+        cv.imshow(self.__windowName, self.__img)
+        cv.setMouseCallback(self.__windowName, self.__clickEvent)
         __KEY = cv.waitKey(0)
 
         if len(self.__pts) > 0:
