@@ -3,7 +3,7 @@ import time
 import cv2
 import numpy as np
 
-from utils.streamVideo import CustomThread
+from utils.streamVideo import CustomThread, letterbox
 from utils.click import click
 
 import torch
@@ -19,17 +19,14 @@ names = ["bus", "shuttle", "motorcycle", "car"]
 model = attempt_load("./best.pt", map_location="cuda")
 model = TracedModel(model, "cuda", 640)
 
-m3u8_url = "https://hls.ibb.gov.tr/tkm4/hls/416.stream/chunklist.m3u8"
-
+m3u8_url = "https://hls.ibb.gov.tr/tkm4/hls/752.stream/chunklist.m3u8"
 streamSize = (352, 640, 3)
-sideBorder = (640 - streamSize[1])//2
-frontBackBorder = (640 - streamSize[0])//2
 
 key = ord("q")
 thread = CustomThread(m3u8_url, streamSize, 0.07)
 thread.start()
 
-d = 5
+d = 4
 print(f"wait {d} seconds")
 time.sleep(d)
 if thread.lastFrame is not None:
@@ -39,13 +36,14 @@ else:
     sys.exit()
 
 while True:
-    img0 = thread.lastFrame
+    img0 = thread.lastFrame.copy()
 
     img = cv2.bitwise_and(img0, img0, mask=maskC.mask)
-    img[maskC.mask == 0] = 144
-    img = cv2.copyMakeBorder(img, frontBackBorder, frontBackBorder, sideBorder, sideBorder, cv2.BORDER_CONSTANT, value=(144, 144, 144))
-
+    img[maskC.mask == 0] = 114
+    img = letterbox(img)
+    inputSize = img.shape
     img = img[:, :, ::-1].transpose(2, 0, 1)
+
     img = np.ascontiguousarray(img)
 
     img = torch.from_numpy(img).to("cuda").float()
@@ -53,11 +51,16 @@ while True:
     img = img.unsqueeze(0)
     with torch.no_grad():
         pred = model(img)[0]
-    pred = non_max_suppression(pred, conf_thres=0.5, iou_thres=0.5)
+
+    pred = non_max_suppression(pred, conf_thres=0.5, iou_thres=0.4)
     for i, det in enumerate(pred):
         if len(det):
-            det[:, :4] = scale_coords((640, 640), det[:, :4], streamSize[:2]).round()
+            det[:, :4] = scale_coords(inputSize[:2], det[:, :4], streamSize[:2]).round()
 
+            image = cv2.putText(img0, str(len(det)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                                1, (255, 0, 0), 2, cv2.LINE_AA)
+            a = 0
+            b = 0
             for *xyxy, conf, cls in det:
                 label = f'{names[int(cls)]} {conf:.2f}'
                 plot_one_box(xyxy, img0, label=label, color=colors[int(cls)], line_thickness=1)
@@ -66,4 +69,5 @@ while True:
     if cv2.waitKey(1) == key:
         cv2.destroyAllWindows()
         break
+
 thread.stop()
