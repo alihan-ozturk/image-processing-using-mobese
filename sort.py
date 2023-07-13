@@ -89,7 +89,7 @@ class KalmanBoxTracker(object):
     def __init__(self, bbox):
         """
         Initialize a tracker using initial bounding box
-        
+
         Parameter 'bbox' must have 'detected class' int number at the -1 position.
         """
         self.kf = KalmanFilter(dim_x=7, dim_z=4)
@@ -176,7 +176,7 @@ class KalmanBoxTracker(object):
 def associate_detections_to_trackers(detections, trackers, iou_threshold=0.3):
     """
     Assigns detections to tracked object (both represented as bounding boxes)
-    Returns 3 lists of 
+    Returns 3 lists of
     1. matches,
     2. unmatched_detections
     3. unmatched_trackers
@@ -241,11 +241,11 @@ class Sort(object):
         """
         Parameters:
         'dets' - a numpy array of detection in the format [[x1, y1, x2, y2, score], [x1,y1,x2,y2,score],...]
-        
+
         Ensure to call this method even frame has no detections. (pass np.empty((0,5)))
-        
+
         Returns a similar array, where the last column is object ID (replacing confidence score)
-        
+
         NOTE: The number of objects returned may differ from the number of objects provided.
         """
         self.frame_count += 1
@@ -374,7 +374,7 @@ if __name__ == '__main__':
             ax1.cla()
 
     print("Total Tracking took: %.3f seconds for %d frames or %.1f FPS" % (
-        total_time, total_frames, total_frames / total_time))
+    total_time, total_frames, total_frames / total_time))
 
     if (display):
         print("Note: to get real runtime results run without the option: --display")

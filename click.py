@@ -62,9 +62,15 @@ class click:
         if len(self.allPts) == 0:
             raise Exception("no pts")
         mask = np.zeros_like(self.__img[:, :, 0])
+
+        self.masks = []
         for i in range(len(self.allPts)):
-            cv.fillConvexPoly(mask, np.array(self.allPts[i]), 255)
+            cv.fillConvexPoly(mask, np.array(self.allPts[i]), i+1)
             masked = cv.bitwise_and(self.__backup, self.__backup, mask=mask)
+
+            mask2 = np.zeros_like(self.__img[:, :, 0])
+            cv.fillConvexPoly(mask2, np.array(self.allPts[i]), 255)
+            self.masks.append(mask2)
         if __KEY == self.KEY:
             self.__img = self.__backup.copy()
             cv.addWeighted(masked, self.ALPHA, self.__img, 1 - self.ALPHA, 0, self.__img)
